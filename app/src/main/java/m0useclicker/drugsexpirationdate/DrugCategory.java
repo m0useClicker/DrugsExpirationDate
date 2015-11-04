@@ -16,8 +16,8 @@ public class DrugCategory {
     public DrugCategory(String name, Multimap<String, Date> drugs) {
         this.name = name;
         children = new ArrayList<>();
-        for (String drugName : drugs) {
-            children.add(new Drug(drugName, new Date()));
+        for (Map.Entry<String, Date> drug : drugs.entries()) {
+            children.add(new Drug(drug.getKey(), drug.getValue()));
         }
     }
 
