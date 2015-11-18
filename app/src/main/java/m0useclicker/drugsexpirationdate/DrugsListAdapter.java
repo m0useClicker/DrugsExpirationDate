@@ -1,23 +1,44 @@
 package m0useclicker.drugsexpirationdate;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 class DrugsListAdapter extends BaseExpandableListAdapter {
 
     private List<DrugCategory> listData;
     private Context context;
+    DrugsDbHelper dbHelper;
 
-    public DrugsListAdapter(Context context, List<DrugCategory> data) {
+    public DrugsListAdapter(Context context) throws ParseException {
         this.context = context;
+        dbHelper = new DrugsDbHelper(context);
+        listData = getData();
+    }
 
-        listData = data;
+    private List<DrugCategory> getData() throws ParseException {
+        List<DrugCategory> data = new ArrayList<>();
+
+        for (String category : dbHelper.getCategories()) {
+            Multimap<String, Date> drugData = dbHelper.getDrugs(category);
+            DrugCategory drugCategory = new DrugCategory(category, drugData);
+            data.add(drugCategory);
+        }
+
+        return data;
     }
 
     @Override
@@ -58,7 +79,7 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        DrugCategoryView drugCategoryView = null;
+        DrugCategoryView drugCategoryView;
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.drug_category, null);
             drugCategoryView = new DrugCategoryView(convertView);
@@ -72,7 +93,7 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        DrugView drugCategoryView = null;
+        DrugView drugCategoryView;
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.drug, null);
             drugCategoryView = new DrugView(convertView);
@@ -88,6 +109,24 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
+    }
+
+    public void addGroup(String groupName)
+    {
+        Multimap<String, Date> drugs = ArrayListMultimap.create();
+        DrugCategory category = new DrugCategory(groupName,drugs);
+
+        listData.add(category);
+        dbHelper.addCategory(groupName);
+
+        this.notifyDataSetChanged();
+    }
+
+    public void removeGroup(int groupPosition) {
+        DrugCategory category = (DrugCategory) getGroup(groupPosition);
+        listData.remove(groupPosition);
+        dbHelper.removeCategory(category.getName());
+        this.notifyDataSetChanged();
     }
 
     static class DrugCategoryView {

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,11 +29,10 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
                     DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME + TEXT_COLUMN_TYPE + COMMA_SEP +
                     DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE + TEXT_COLUMN_TYPE + COMMA_SEP +
                     "FOREIGN KEY(" + DrugsDbContract.DrugEntry.COLUMN_NAME_CATEGORY + ") REFERENCES " + DrugsDbContract.DrugCategoryEntry.TABLE_NAME + "(" + DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + ")" +
-                    " )";
+                    " ) ON DELETE CASCADE";
 
     public DrugsDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        Log.e("DB", "DB helper enter");
     }
 
     @Override
@@ -97,5 +95,25 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
         db.close();
 
         return map;
+    }
+
+    public void addCategory(String categoryName)
+    {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID, categoryName);
+
+        db.insert(DrugsDbContract.DrugCategoryEntry.TABLE_NAME,null,values);
+    }
+
+    public void removeCategory(String category)
+    {
+        SQLiteDatabase db = getReadableDatabase();
+
+        String whereClause = DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + "=?";
+        String[] whereArguments = { category };
+
+        db.delete(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, whereClause, whereArguments);
     }
 }
