@@ -6,20 +6,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-public class DrugsDbHelper extends SQLiteOpenHelper {
+class DrugsDbHelper extends SQLiteOpenHelper {
     public static final Integer DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "Drugs.db";
 
     private static final String TEXT_COLUMN_TYPE = " TEXT";
-    private static final String COMMA_SEP = ",";
+    private static final String COMMA_SEP = ", ";
     private static final String SQL_CREATE_CATEGORIES_TABLE =
             "CREATE TABLE " + DrugsDbContract.DrugCategoryEntry.TABLE_NAME + " (" +
                     DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + TEXT_COLUMN_TYPE + " PRIMARY KEY)";
@@ -27,9 +25,11 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + DrugsDbContract.DrugEntry.TABLE_NAME + " (" +
                     DrugsDbContract.DrugEntry.COLUMN_NAME_CATEGORY + TEXT_COLUMN_TYPE + COMMA_SEP +
                     DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME + TEXT_COLUMN_TYPE + COMMA_SEP +
-                    DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE + TEXT_COLUMN_TYPE + COMMA_SEP +
+                    DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE + " INTEGER," +
                     "FOREIGN KEY(" + DrugsDbContract.DrugEntry.COLUMN_NAME_CATEGORY + ") REFERENCES " + DrugsDbContract.DrugCategoryEntry.TABLE_NAME + "(" + DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + ")" +
-                    " ) ON DELETE CASCADE";
+                    " ON DELETE CASCADE ON UPDATE CASCADE)";
+    private static final String SQL_CATEGORY_WHERE_CLAUSE = DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + "=?";
+    private static final String SQL_DRUG_WHERE_CLAUSE = DrugsDbContract.DrugEntry.COLUMN_NAME_CATEGORY + "=? AND " + DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME + "=?";
 
     public DrugsDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -70,7 +70,7 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
         return categories;
     }
 
-    public Multimap<String, Date> getDrugs(String category) throws ParseException {
+    public Multimap<String, Date> getDrugs(String category) {
         Multimap<String, Date> map = ArrayListMultimap.create();
 
         SQLiteDatabase db = getReadableDatabase();
@@ -84,10 +84,8 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 String itemId = cursor.getString(cursor.getColumnIndex(DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME));
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                Date expirationDate = formatter.parse(cursor.getString(cursor.getColumnIndex(DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE)));
-
-                map.put(itemId, expirationDate);
+                Date date = new Date(cursor.getLong(cursor.getColumnIndex(DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE)));
+                map.put(itemId, date);
             } while (cursor.moveToNext());
         }
 
@@ -97,23 +95,90 @@ public class DrugsDbHelper extends SQLiteOpenHelper {
         return map;
     }
 
-    public void addCategory(String categoryName)
-    {
+    public boolean addCategory(String categoryName) {
+        if(isCategoryExist(categoryName)){
+            return false;
+        }
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID, categoryName);
 
-        db.insert(DrugsDbContract.DrugCategoryEntry.TABLE_NAME,null,values);
+        db.insert(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, null, values);
+        return true;
     }
 
-    public void removeCategory(String category)
-    {
+    public void removeCategory(String category) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        String[] whereArguments = {category};
+
+        db.delete(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, SQL_CATEGORY_WHERE_CLAUSE, whereArguments);
+    }
+
+    public void removeDrug(String categoryName, String drugName) {
         SQLiteDatabase db = getReadableDatabase();
 
-        String whereClause = DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + "=?";
-        String[] whereArguments = { category };
+        String[] whereArguments = {categoryName, drugName};
 
-        db.delete(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, whereClause, whereArguments);
+        db.delete(DrugsDbContract.DrugEntry.TABLE_NAME, SQL_DRUG_WHERE_CLAUSE, whereArguments);
+    }
+
+    public void renameCategory(String currentName, String newName) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID, newName);
+
+        String[] whereArguments = {currentName};
+
+        db.update(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, values, SQL_CATEGORY_WHERE_CLAUSE, whereArguments);
+    }
+
+    public void renameDrug(String categoryName, String currentName, String newName) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME, newName);
+
+        String[] whereArguments = {categoryName, currentName};
+
+        db.update(DrugsDbContract.DrugEntry.TABLE_NAME, values, SQL_DRUG_WHERE_CLAUSE, whereArguments);
+    }
+
+    public void changeDrugDate(String categoryName, String drugName, long totalMilliseconds) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE, totalMilliseconds);
+
+        String[] whereArguments = {categoryName, drugName};
+
+        db.update(DrugsDbContract.DrugEntry.TABLE_NAME, values, SQL_DRUG_WHERE_CLAUSE, whereArguments);
+    }
+
+    public void addDrug(String categoryName, String drugName, long dateInMilliseconds) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DrugsDbContract.DrugEntry.COLUMN_NAME_CATEGORY, categoryName);
+        values.put(DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME, drugName);
+        values.put(DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE, dateInMilliseconds);
+
+        db.insert(DrugsDbContract.DrugEntry.TABLE_NAME, null, values);
+    }
+
+    private boolean isCategoryExist(String categoryName) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        String[] columns = {DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID};
+        String[] whereArguments = {categoryName};
+
+        Cursor cursor = db.query(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, columns, SQL_CATEGORY_WHERE_CLAUSE, whereArguments, null, null, null);
+
+        Boolean rowExists = cursor.moveToFirst();
+
+        cursor.close();
+        return rowExists;
     }
 }

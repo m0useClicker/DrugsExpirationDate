@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Drugs Expiration Date</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="expiresLabelText">Expires: </string>
+    <string name="addCategoryButtonText">Add Category</string>
 </resources>

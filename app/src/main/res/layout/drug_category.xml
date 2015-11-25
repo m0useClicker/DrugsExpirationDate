@@ -7,6 +7,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DrugNameGoesHere"
-        android:id="@+id/drugCategoryView"/>
+        android:text="DrugCategoryNameGoesHere"
+        android:id="@+id/drugCategoryView"
+        android:textColor="@color/black"/>
 </LinearLayout>

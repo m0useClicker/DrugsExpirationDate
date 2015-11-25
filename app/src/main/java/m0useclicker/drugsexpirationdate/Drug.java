@@ -2,7 +2,7 @@ package m0useclicker.drugsexpirationdate;
 
 import java.util.Date;
 
-public class Drug {
+class Drug {
 
     private String name;
 
@@ -17,7 +17,15 @@ public class Drug {
         return name;
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
+
     public Date getExpirationDate() {
         return expirationDate;
+    }
+
+    public void setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
     }
 }

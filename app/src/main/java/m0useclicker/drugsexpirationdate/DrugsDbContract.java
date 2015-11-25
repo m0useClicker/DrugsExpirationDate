@@ -2,7 +2,7 @@ package m0useclicker.drugsexpirationdate;
 
 import android.provider.BaseColumns;
 
-public class DrugsDbContract {
+class DrugsDbContract {
     public static abstract class DrugCategoryEntry implements BaseColumns {
         public static final String TABLE_NAME = "categories";
         public static final String COLUMN_NAME_ID = "category_id";

@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class DrugCategory {
+class DrugCategory {
 
     private String name;
 
@@ -23,6 +23,10 @@ public class DrugCategory {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name){
+        this.name = name;
     }
 
     public List<Drug> getDrugs() {
