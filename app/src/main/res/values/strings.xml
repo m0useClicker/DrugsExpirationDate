@@ -4,4 +4,8 @@
     <string name="cancel">Cancel</string>
     <string name="expiresLabelText">Expires: </string>
     <string name="addCategoryButtonText">Add Category</string>
+    <string name="delete">Delete</string>
+    <string name="newCategoryHint">New Category Name</string>
+    <string name="rename">Rename</string>
+    <string name="changeDate">Change date</string>
 </resources>

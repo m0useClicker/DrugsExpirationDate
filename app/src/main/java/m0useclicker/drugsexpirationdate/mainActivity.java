@@ -10,6 +10,7 @@ import android.provider.CalendarContract;
 import android.view.ContextMenu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -51,14 +52,14 @@ public class mainActivity extends Activity {
         if (type == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
             menu.setHeaderTitle("Drug");
             menu.add(0, MENU_ADD_REMINDER, 0, "Add calendar reminder");
-            menu.add(0, MENU_EDIT_DATE, 0, "Change date");
-            menu.add(0, MENU_RENAME_DRUG, 0, "Rename");
-            menu.add(0, MENU_DELETE_DRUG, 1, "Delete");
+            menu.add(0, MENU_EDIT_DATE, 0, R.string.changeDate);
+            menu.add(0, MENU_RENAME_DRUG, 0, R.string.rename);
+            menu.add(0, MENU_DELETE_DRUG, 1, R.string.delete);
         } else if (type == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
             menu.setHeaderTitle("Category");
             menu.add(0, MENU_ADD_DRUG, 0, "Add drug");
-            menu.add(0, MENU_RENAME_CATEGORY, 0, "Rename");
-            menu.add(0, MENU_DELETE_CATEGORY, 1, "Delete");
+            menu.add(0, MENU_RENAME_CATEGORY, 0, R.string.rename);
+            menu.add(0, MENU_DELETE_CATEGORY, 1, R.string.delete);
         }
     }
 
@@ -121,9 +122,10 @@ public class mainActivity extends Activity {
     private EditText editText;
     private void showAddCategoryDialog(){
         editText = new EditText(this);
-        new AlertDialog.Builder(this)
+        editText.setHint(R.string.newCategoryHint);
+        final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
-                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String categoryName = editText.getText().toString();
                         if (categoryName.length() == 0)
@@ -137,6 +139,15 @@ public class mainActivity extends Activity {
                     }
                 })
                 .show();
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+        editText.requestFocus();
     }
 
     private void showCategoryExistDialog() {
@@ -151,14 +162,15 @@ public class mainActivity extends Activity {
                 .show();
     }
 
-    private void showRenameCategoryDialog(final int categoryPosition){
+    private void showRenameCategoryDialog(final int categoryPosition) {
         final String oldName = listAdapter.getGroup(categoryPosition).getName();
         editText = new EditText(this);
         editText.setSelectAllOnFocus(true);
         editText.setText(oldName);
-        new AlertDialog.Builder(this)
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
-                .setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String categoryName = editText.getText().toString();
                         if (categoryName.length() == 0)
@@ -166,11 +178,19 @@ public class mainActivity extends Activity {
                         listAdapter.renameCategory(categoryPosition, categoryName);
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
-                })
-                .show();
+                }).show();
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+        editText.requestFocus();
     }
 
     private void showRenameDrugDialog(final int categoryPosition, final int drugPosition){
@@ -178,7 +198,7 @@ public class mainActivity extends Activity {
         editText = new EditText(this);
         editText.setSelectAllOnFocus(true);
         editText.setText(oldName);
-        new AlertDialog.Builder(this)
+        final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
                 .setPositiveButton("Rename", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -193,11 +213,20 @@ public class mainActivity extends Activity {
                     }
                 })
                 .show();
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+        editText.requestFocus();
     }
 
     private void addDrug(final int categoryPosition) {
         editText = new EditText(this);
-        new AlertDialog.Builder(this)
+        final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
                 .setPositiveButton("Set expiration date", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -226,6 +255,15 @@ public class mainActivity extends Activity {
                     }
                 })
                 .show();
+        editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                }
+            }
+        });
+        editText.requestFocus();
     }
 
     private void addReminder(int categoryPosition, int drugPosition){

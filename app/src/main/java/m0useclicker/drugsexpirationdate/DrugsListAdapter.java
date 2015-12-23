@@ -7,12 +7,8 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 class DrugsListAdapter extends BaseExpandableListAdapter {
@@ -27,11 +23,11 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
         listData = getData();
     }
 
-    private List<DrugCategory> getData(){
+    private List<DrugCategory> getData() {
         List<DrugCategory> data = new ArrayList<>();
 
         for (String category : dbHelper.getCategories()) {
-            Multimap<String, Date> drugData = dbHelper.getDrugs(category);
+            ArrayList<Drug> drugData = dbHelper.getDrugs(category);
             DrugCategory drugCategory = new DrugCategory(category, drugData);
             data.add(drugCategory);
         }
@@ -109,57 +105,55 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
         return true;
     }
 
-    public boolean addCategory(String categoryName)
-    {
-        Multimap<String, Date> drugs = ArrayListMultimap.create();
-        DrugCategory category = new DrugCategory(categoryName,drugs);
-
-        listData.add(category);
+    public boolean addCategory(String categoryName) {
         Boolean isAdded = dbHelper.addCategory(categoryName);
 
-        if(isAdded)
-            this.notifyDataSetChanged();
+        if (isAdded) {
+            notifyDataChanged();
+        }
 
         return isAdded;
     }
 
     public void removeCategory(int categoryPosition) {
         dbHelper.removeCategory(listData.get(categoryPosition).getName());
-        listData.remove(categoryPosition);
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
     public void removeDrug(int categoryPosition, int drugPosition) {
         Drug drug = getChild(categoryPosition, drugPosition);
         dbHelper.removeDrug(listData.get(categoryPosition).getName(), drug.getName());
-        listData.get(categoryPosition).getDrugs().remove(drugPosition);
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
     public void renameCategory(int categoryPosition, String newName) {
         dbHelper.renameCategory(listData.get(categoryPosition).getName(), newName);
-        listData.get(categoryPosition).setName(newName);
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
     public void renameDrug(int categoryPosition, int drugPosition, String drugName) {
         dbHelper.renameDrug(listData.get(categoryPosition).getName(), listData.get(categoryPosition).getDrugs().get(drugPosition).getName(), drugName);
-        listData.get(categoryPosition).getDrugs().get(drugPosition).setName(drugName);
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
     public void addDrug(int categoryPosition, String drugName, long dateInMilliseconds) {
         dbHelper.addDrug(listData.get(categoryPosition).getName(), drugName, dateInMilliseconds);
-        listData.get(categoryPosition).getDrugs().add(new Drug(drugName,new Date(dateInMilliseconds)));
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
     public void changeDrugDate(int categoryPosition, int drugPosition, long totalMilliseconds) {
         dbHelper.changeDrugDate(listData.get(categoryPosition).getName(), listData.get(categoryPosition).getDrugs().get(drugPosition).getName(), totalMilliseconds);
-        listData.get(categoryPosition).getDrugs().get(drugPosition).setExpirationDate(new Date(totalMilliseconds));
-        this.notifyDataSetChanged();
+        notifyDataChanged();
     }
 
+    public void refreshData() {
+        listData = getData();
+    }
+
+    private void notifyDataChanged() {
+        refreshData();
+        this.notifyDataSetChanged();
+    }
 
     static class DrugCategoryView {
         final TextView groupHeader;
@@ -177,7 +171,7 @@ class DrugsListAdapter extends BaseExpandableListAdapter {
         private DrugView(View group) {
             drugName = (TextView) group.findViewById(R.id.drugName);
             drugName.setTextSize(12);
-            expirationDate = (TextView)group.findViewById(R.id.expirationDate);
+            expirationDate = (TextView) group.findViewById(R.id.expirationDate);
             expirationDate.setTextSize(12);
         }
     }

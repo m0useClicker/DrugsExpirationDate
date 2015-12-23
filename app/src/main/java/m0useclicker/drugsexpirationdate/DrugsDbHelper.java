@@ -9,10 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.Date;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-
 class DrugsDbHelper extends SQLiteOpenHelper {
+    public static final String[] categories = {"Pain", "Allergy", "Fewer", "Cold"};
     public static final Integer DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "Drugs.db";
 
@@ -40,7 +38,7 @@ class DrugsDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_CATEGORIES_TABLE);
         db.execSQL(SQL_CREATE_DRUGS_TABLE);
         ContentValues values = new ContentValues();
-        String[] categories = {"Pain", "Allergy", "Fewer", "Cold"};
+
         for (String category : categories) {
             values.put(DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID, category);
             db.insert(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, null, values);
@@ -70,8 +68,8 @@ class DrugsDbHelper extends SQLiteOpenHelper {
         return categories;
     }
 
-    public Multimap<String, Date> getDrugs(String category) {
-        Multimap<String, Date> map = ArrayListMultimap.create();
+    public ArrayList<Drug> getDrugs(String category) {
+        ArrayList<Drug> drugs = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
         String[] columns = {DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME, DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE};
@@ -85,14 +83,14 @@ class DrugsDbHelper extends SQLiteOpenHelper {
             do {
                 String itemId = cursor.getString(cursor.getColumnIndex(DrugsDbContract.DrugEntry.COLUMN_NAME_DRUG_NAME));
                 Date date = new Date(cursor.getLong(cursor.getColumnIndex(DrugsDbContract.DrugEntry.COLUMN_NAME_EXPIRATION_DATE)));
-                map.put(itemId, date);
+                drugs.add(new Drug(itemId, date));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
         db.close();
 
-        return map;
+        return drugs;
     }
 
     public boolean addCategory(String categoryName) {

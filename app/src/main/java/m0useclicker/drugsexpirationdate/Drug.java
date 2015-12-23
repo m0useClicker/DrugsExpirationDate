@@ -28,4 +28,17 @@ class Drug {
     public void setExpirationDate(Date expirationDate) {
         this.expirationDate = expirationDate;
     }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        boolean sameSame = false;
+
+        if (object != null && object instanceof Drug)
+        {
+            sameSame = name.equals(((Drug)object).getName()) && expirationDate.equals(((Drug)object).expirationDate);
+        }
+
+        return sameSame;
+    }
 }
