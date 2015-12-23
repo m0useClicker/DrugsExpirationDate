@@ -26,6 +26,7 @@ public class mainActivity extends Activity {
     private final int MENU_DELETE_CATEGORY = 5;
     private final int MENU_DELETE_DRUG=6;
 
+    private ExpandableListView list;
     DrugsListAdapter listAdapter;
 
     @Override
@@ -33,7 +34,7 @@ public class mainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_main);
 
-        ExpandableListView list = (ExpandableListView) findViewById(R.id.listView);
+        list = (ExpandableListView) findViewById(R.id.listView);
         registerForContextMenu(list);
         listAdapter = new DrugsListAdapter(this);
         list.setAdapter(listAdapter);
@@ -50,14 +51,14 @@ public class mainActivity extends Activity {
                 ExpandableListView.getPackedPositionType(info.packedPosition);
 
         if (type == ExpandableListView.PACKED_POSITION_TYPE_CHILD) {
-            menu.setHeaderTitle("Drug");
-            menu.add(0, MENU_ADD_REMINDER, 0, "Add calendar reminder");
-            menu.add(0, MENU_EDIT_DATE, 0, R.string.changeDate);
+            menu.setHeaderTitle(R.string.drugMenuTitle);
+            menu.add(0, MENU_ADD_REMINDER, 0, R.string.addCalendarReminderMenuItem);
+            menu.add(0, MENU_EDIT_DATE, 0, R.string.changeDateMenuItem);
             menu.add(0, MENU_RENAME_DRUG, 0, R.string.rename);
             menu.add(0, MENU_DELETE_DRUG, 1, R.string.delete);
         } else if (type == ExpandableListView.PACKED_POSITION_TYPE_GROUP) {
-            menu.setHeaderTitle("Category");
-            menu.add(0, MENU_ADD_DRUG, 0, "Add drug");
+            menu.setHeaderTitle(R.string.categoryMenuTitle);
+            menu.add(0, MENU_ADD_DRUG, 0, R.string.addDrugMenuItem);
             menu.add(0, MENU_RENAME_CATEGORY, 0, R.string.rename);
             menu.add(0, MENU_DELETE_CATEGORY, 1, R.string.delete);
         }
@@ -134,7 +135,7 @@ public class mainActivity extends Activity {
                             showCategoryExistDialog();
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 })
@@ -153,9 +154,9 @@ public class mainActivity extends Activity {
     private void showCategoryExistDialog() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle("Category creation")
-                .setMessage("Category already exists.")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                .setTitle(R.string.categoryAlreadyExistsTitle)
+                .setMessage(R.string.categoryAlreadyExistsMessage)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 })
@@ -200,7 +201,7 @@ public class mainActivity extends Activity {
         editText.setText(oldName);
         final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
-                .setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String drugName = editText.getText().toString();
                         if (drugName.length() == 0)
@@ -208,7 +209,7 @@ public class mainActivity extends Activity {
                         listAdapter.renameDrug(categoryPosition, drugPosition, drugName);
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 })
@@ -226,9 +227,10 @@ public class mainActivity extends Activity {
 
     private void addDrug(final int categoryPosition) {
         editText = new EditText(this);
+        editText.setHint(R.string.addDrugNameHint);
         final AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(editText)
-                .setPositiveButton("Set expiration date", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.setExpirationDateDialogButton, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         final String drugName = editText.getText().toString();
                         if (drugName.length() == 0)
@@ -250,7 +252,7 @@ public class mainActivity extends Activity {
                         }, year, month, day).show();
                     }
                 })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 })
@@ -264,6 +266,8 @@ public class mainActivity extends Activity {
             }
         });
         editText.requestFocus();
+
+        list.expandGroup(categoryPosition);
     }
 
     private void addReminder(int categoryPosition, int drugPosition){

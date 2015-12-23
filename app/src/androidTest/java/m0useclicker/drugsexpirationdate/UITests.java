@@ -24,14 +24,17 @@ import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
+import static android.support.test.espresso.matcher.ViewMatchers.hasSibling;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withHint;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.allOf;
 
 @RunWith(AndroidJUnit4.class)
 public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
-    private final static String testDataId = "%uiTesting";
+    private final static String testDataId = "_uiTesting";
     private mainActivity activity;
 
     public UITests() {
@@ -54,13 +57,13 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
     private void removeTestData() {
         DrugsDbHelper dbHelper = new DrugsDbHelper(activity);
         SQLiteDatabase database = dbHelper.getWritableDatabase();
-        database.delete(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + " LIKE '" + testDataId + "'", null);
+        database.delete(DrugsDbContract.DrugCategoryEntry.TABLE_NAME, DrugsDbContract.DrugCategoryEntry.COLUMN_NAME_ID + " LIKE '%" + testDataId + "'", null);
         database.close();
         dbHelper.close();
     }
 
     @Test
-    public void testAddCoupleCategories() {
+    public void testAddCategoryCanBeShowedSeveralTimes() {
         final String addCategory1Name = "createCategory1" + getUniqueSuffix();
         final String addCategory2Name = "createCategory2" + getUniqueSuffix();
         onView(withId(R.id.addCategoryButton)).perform(click());
@@ -96,7 +99,7 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
     }
 
     @Test
-    public void testRenameCoupleCategories() {
+    public void testRenameCategoryDialogCanBeShowedSeveralTimes() {
         final String rename1This = "renameMe1" + getUniqueSuffix();
         final String rename2This = "renameMe2" + getUniqueSuffix();
         addCategory(rename1This);
@@ -161,14 +164,109 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
     }
 
     @Test
+    public void testAddDrugDialogCanBeShowedSeveralTimes(){
+        final String category = "addDrugOkCategory"+getUniqueSuffix();
+        final String drug1Name = "add1Drug"+getUniqueSuffix();
+        final String drug2Name = "add2Drug"+getUniqueSuffix();
+        addCategory(category);
+
+        onView(withText(category)).perform(longClick());
+        onView(withText(R.string.addDrugMenuItem)).perform(click());
+        onView(withHint(R.string.addDrugNameHint)).perform(typeText(drug1Name));
+        onView(withText(R.string.setExpirationDateDialogButton)).perform(click());
+        onView(withText(R.string.ok)).perform(click());
+        onView(withText(category)).perform(longClick());
+        onView(withText(R.string.addDrugMenuItem)).perform(click());
+        onView(withHint(R.string.addDrugNameHint)).perform(typeText(drug2Name));
+        onView(withText(R.string.setExpirationDateDialogButton)).perform(click());
+        onView(withText(R.string.ok)).perform(click());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        String date = dateFormat.format(new Date());
+
+        onView(allOf(withText(drug1Name), hasSibling(hasDescendant(withText(date))))).check(matches(isDisplayed()));
+        onView(allOf(withText(drug2Name), hasSibling(hasDescendant(withText(date))))).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testAddDrugOk() {
+        final String category = "addDrugOkCategory" + getUniqueSuffix();
+        final String drugName = "addDrugOk" + getUniqueSuffix();
+        addCategory(category);
+
+        onView(withText(category)).perform(longClick());
+        onView(withText(R.string.addDrugMenuItem)).perform(click());
+        onView(withHint(R.string.addDrugNameHint)).perform(typeText(drugName));
+        onView(withText(R.string.setExpirationDateDialogButton)).perform(click());
+        onView(withText(R.string.ok)).perform(click());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        String date = dateFormat.format(new Date());
+
+        onView(allOf(withText(drugName), hasSibling(hasDescendant(withText(date))))).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testAddDrugCancelOnDrugName(){
+        final String category = "addDrugCancelNameCategory"+getUniqueSuffix();
+        final String drugName = "addDrugCancelName"+getUniqueSuffix();
+        addCategory(category);
+
+        onView(withText(category)).perform(longClick());
+        onView(withText(R.string.addDrugMenuItem)).perform(click());
+        onView(withHint(R.string.addDrugNameHint)).perform(typeText(drugName));
+        onView(withText(R.string.cancel)).perform(click());
+
+        onView(withText(drugName)).check(doesNotExist());
+    }
+
+    @Test
+    public void testAddDrugCancelOnDrugDate(){
+        final String category = "addDrugCancelDateCategory"+getUniqueSuffix();
+        final String drugName = "addDrugCancelDate"+getUniqueSuffix();
+        addCategory(category);
+
+        onView(withText(category)).perform(longClick());
+        onView(withText(R.string.addDrugMenuItem)).perform(click());
+        onView(withHint(R.string.addDrugNameHint)).perform(typeText(drugName));
+        onView(withText(R.string.setExpirationDateDialogButton)).perform(click());
+        onView(withText(R.string.cancel)).perform(click());
+
+        onView(withText(drugName)).check(doesNotExist());
+    }
+
+    @Test
+    public void testChangeDateDialogCanBeShowedSeveralTimes(){
+        String categoryName = "setDateTwoDrugsCategory" + getUniqueSuffix();
+        String drug1Name = "rename1Drug" + getUniqueSuffix();
+        String drug2Name = "rename2Drug" + getUniqueSuffix();
+        addDrug(categoryName, drug1Name, 0);
+        addDrug(categoryName, drug2Name, 0);
+
+        onView(withText(categoryName)).perform(click());
+        onView(withText(drug1Name)).perform(longClick());
+        onView(withText(R.string.changeDateMenuItem)).perform(click());
+        onView(withText("OK")).perform(click());
+        onView(withText(drug2Name)).perform(longClick());
+        onView(withText(R.string.changeDateMenuItem)).perform(click());
+        onView(withText("OK")).perform(click());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        String date = dateFormat.format(new Date());
+
+        onView(allOf(withText(drug1Name),hasSibling(hasDescendant(withText(date))))).check(matches(isDisplayed()));
+        onView(allOf(withText(drug2Name),hasSibling(hasDescendant(withText(date))))).check(matches(isDisplayed()));
+    }
+
+    @Test
     public void testChangeDateOk() {
-        String categoryName = "deleteDrugCategory" + getUniqueSuffix();
+        String categoryName = "setDateDrugOkCategory" + getUniqueSuffix();
         String drugName = "renameDrugOk" + getUniqueSuffix();
         addDrug(categoryName, drugName, 0);
 
         onView(withText(categoryName)).perform(click());
         onView(withText(drugName)).perform(longClick());
-        onView(withText(R.string.changeDate)).perform(click());
+        onView(withText(R.string.changeDateMenuItem)).perform(click());
         onView(withText("OK")).perform(click());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
@@ -180,25 +278,50 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
 
     @Test
     public void testChangeDateCancel() {
-        String categoryName = "deleteDrugCategory" + getUniqueSuffix();
+        String categoryName = "setDateDrugCancelCategory" + getUniqueSuffix();
         String drugName = "renameDrugOk" + getUniqueSuffix();
         addDrug(categoryName, drugName, 0);
 
         onView(withText(categoryName)).perform(click());
         onView(withText(drugName)).perform(longClick());
-        onView(withText(R.string.changeDate)).perform(click());
-        onView(withText("CANCEL")).perform(click());
+        onView(withText(R.string.changeDateMenuItem)).perform(click());
+        onView(withText(R.string.cancel)).perform(click());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         String date = dateFormat.format(new Date());
 
-        onView(withText("Expires:Dec 31, 1969")).check(matches(isDisplayed()));
-        onView(withText(R.string.expiresLabelText + date)).check(doesNotExist());
+        onView(allOf(withText(activity.getString(R.string.expiresLabelText)), hasSibling(withText("Dec 31, 1969")))).check(matches(isDisplayed()));
+        onView(allOf(withText(activity.getString(R.string.expiresLabelText)), hasSibling(withText(date)))).check(doesNotExist());
+    }
+
+    @Test
+    public void testRenameDrugDialogCanBeShowedSeveralTimes(){
+        String categoryName = "renameTwoDrugsCategory" + getUniqueSuffix();
+        String drug1Name = "rename1Drug" + getUniqueSuffix();
+        String drug2Name = "rename2Drug" + getUniqueSuffix();
+        String new1Name = "newName" + drug1Name;
+        String new2Name = "newName" + drug2Name;
+        addDrug(categoryName, drug1Name, 0);
+        addDrug(categoryName, drug2Name, 0);
+
+        onView(withText(categoryName)).perform(click());
+        onView(withText(drug1Name)).perform(longClick());
+        onView(withText(R.string.rename)).perform(click());
+        onView(withText(drug1Name)).perform(replaceText(new1Name));
+        onView(withText(R.string.rename)).perform(click());
+
+        onView(withText(drug2Name)).perform(longClick());
+        onView(withText(R.string.rename)).perform(click());
+        onView(withText(drug2Name)).perform(replaceText(new2Name));
+        onView(withText(R.string.rename)).perform(click());
+
+        onView(withText(new1Name)).check(matches(isDisplayed()));
+        onView(withText(new2Name)).check(matches(isDisplayed()));
     }
 
     @Test
     public void testRenameDrugOk() {
-        String categoryName = "deleteDrugCategory" + getUniqueSuffix();
+        String categoryName = "renameDrugOkCategory" + getUniqueSuffix();
         String drugName = "renameDrugOk" + getUniqueSuffix();
         String newName = "newName" + drugName;
         addDrug(categoryName, drugName, 0);
@@ -215,8 +338,8 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
 
     @Test
     public void testRenameDrugCancel() {
-        String categoryName = "deleteDrugCategory" + getUniqueSuffix();
-        String drugName = "renameDrugOk" + getUniqueSuffix();
+        String categoryName = "renameDrugCancelCategory" + getUniqueSuffix();
+        String drugName = "renameDrugCancel" + getUniqueSuffix();
         String newName = "newName" + drugName;
         addDrug(categoryName, drugName, 0);
 
@@ -224,7 +347,7 @@ public class UITests extends ActivityInstrumentationTestCase2<mainActivity> {
         onView(withText(drugName)).perform(longClick());
         onView(withText(R.string.rename)).perform(click());
         onView(withText(drugName)).perform(replaceText(newName));
-        onView(withText(R.string.rename)).perform(click());
+        onView(withText(R.string.cancel)).perform(click());
 
         onView(withText(drugName)).check(matches(isDisplayed()));
         onView(withText(newName)).check(doesNotExist());

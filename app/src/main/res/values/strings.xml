@@ -1,5 +1,13 @@
 <resources>
     <string name="app_name">Drugs Expiration Date</string>
+
+    <string name="categoryMenuTitle">Category</string>
+    <string name="addDrugMenuItem">Add drug</string>
+
+    <string name="drugMenuTitle">Drug</string>
+    <string name="addCalendarReminderMenuItem">Add calendar reminder</string>
+    <string name="changeDateMenuItem">Change date</string>
+
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
     <string name="expiresLabelText">Expires: </string>
@@ -7,5 +15,10 @@
     <string name="delete">Delete</string>
     <string name="newCategoryHint">New Category Name</string>
     <string name="rename">Rename</string>
-    <string name="changeDate">Change date</string>
+    <string name="setExpirationDateDialogButton">Set expiration date</string>
+    <string name="ok">OK</string>
+
+    <string name="categoryAlreadyExistsMessage">Category already exists.</string>
+    <string name="categoryAlreadyExistsTitle">Category creation</string>
+    <string name="addDrugNameHint">New Drug Name</string>
 </resources>
